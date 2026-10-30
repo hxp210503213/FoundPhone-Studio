@@ -200,9 +200,57 @@ const apps: AppDefinition[] = [
   },
 ];
 
+/**
+ * 跨轮回残留线索。
+ * 这些数据本身不渲染，由渲染层根据 currentCycle / currentView 决定是否显示，
+ * 并按 visualState 套用对应视觉状态。
+ */
+export type ClueVisualState = "smudged" | "recovered" | "clean";
+
+export type Clue = {
+  id: string;
+  /** 承载线索的 APP id。 */
+  app: AppId | string;
+  /** 线索归属角色（谁手机上的东西）。 */
+  owner: CharacterId;
+  /** 线索正文；相册类线索为画面文字描述。 */
+  content: string;
+  /** 谁能恢复/看到这条线索。 */
+  recoverableBy: CharacterId;
+  /** 从第几轮起可见。 */
+  availableFromCycle: number;
+  visualState: ClueVisualState;
+  /** 展示标题，供列表与详情使用。 */
+  title: string;
+};
+
+const clues: Clue[] = [
+  {
+    id: "memo_draft",
+    app: "offline_notes",
+    owner: "zuo_qihan",
+    content: "别让他去天台。别让他信考核排名。别让他——",
+    recoverableBy: "yang_bowen",
+    availableFromCycle: 2,
+    visualState: "smudged",
+    title: "没写完的草稿",
+  },
+  {
+    id: "album_residue",
+    app: "album",
+    owner: "zuo_qihan",
+    content: "集训宿舍楼顶天台，夜里，一张被删掉又恢复的照片",
+    recoverableBy: "yang_bowen",
+    availableFromCycle: 2,
+    visualState: "recovered",
+    title: "恢复的照片",
+  },
+];
+
 export const gameData = {
   characters,
   apps,
+  clues,
   /** 基础 APP 列表，供后续需要批量赋权时引用。 */
   baseAppAccess: BASE_APP_ACCESS,
 } as const;
@@ -246,6 +294,23 @@ export function findApp(id: string): AppDefinition | undefined {
 /** 只读查询辅助：某角色可见的 APP 列表。 */
 export function appsVisibleTo(id: string): AppDefinition[] {
   return apps.filter((a) => (a.visibleTo as readonly string[]).includes(id));
+}
+
+/**
+ * 只读查询辅助：某 APP 上、当前轮次与视角下应显示的线索。
+ * 规则：轮次 >= availableFromCycle，且视角角色在该 APP 的 visibleTo 内。
+ */
+export function cluesFor(app: string, view: CharacterId, cycle: number): Clue[] {
+  const def = findApp(app);
+  if (def && !(def.visibleTo as readonly string[]).includes(view)) return [];
+  return clues.filter(
+    (c) => c.app === app && cycle >= c.availableFromCycle,
+  );
+}
+
+/** 从第 1 轮开始就存在的线索（可用于常驻文件夹），与跨轮回残留区分。 */
+export function permanentClues(app: string): Clue[] {
+  return clues.filter((c) => c.app === app && c.availableFromCycle <= 1);
 }
 
 export default gameData;

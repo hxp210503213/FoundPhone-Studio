@@ -1,0 +1,189 @@
+/* 剧情层叠加样式。只在手机外壳之上增加少量元素，不改动外壳尺寸与壁纸。 */
+
+.game-cycle-badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: inherit;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.game-switch {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.game-switch-btn {
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(20, 22, 26, 0.35);
+  color: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+
+.game-switch-btn:hover {
+  background: rgba(20, 22, 26, 0.55);
+}
+
+/* 左奇函的文件入口，固定在桌面底部 Dock 上方的左侧 */
+.game-file-layer {
+  position: absolute;
+  left: 18px;
+  bottom: 118px;
+  z-index: 40;
+  pointer-events: auto;
+}
+
+.game-file-layer.open {
+  right: 18px;
+  left: 18px;
+  bottom: 118px;
+  border-radius: 18px;
+  padding: 10px 12px 14px;
+  background: rgba(18, 20, 24, 0.82);
+  color: #f2f2f4;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+}
+
+.game-file-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(20, 22, 26, 0.45);
+  color: #f2f2f4;
+  font-size: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.game-file-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.game-file-head button {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: 0;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.game-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.game-file-list button {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.game-file-list span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.game-file-list strong {
+  font-size: 12.5px;
+}
+
+.game-file-list em {
+  font-size: 11px;
+  font-style: normal;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-note-detail h3 {
+  margin: 4px 0 10px;
+  font-size: 14px;
+}
+
+.game-note-body {
+  font-size: 12.5px;
+  line-height: 1.8;
+  margin: 0 0 10px;
+}
+
+.game-note-meta {
+  font-size: 10.5px;
+  opacity: 0.55;
+}
+
+/* 涂抹效果：最后一行被反复涂掉，用重复斜线纹理模拟 */
+.game-smudge {
+  display: inline-block;
+  min-width: 46px;
+  height: 12px;
+  vertical-align: -2px;
+  border-radius: 3px;
+  background-image: repeating-linear-gradient(
+    112deg,
+    rgba(240, 240, 244, 0.72) 0 2px,
+    rgba(240, 240, 244, 0.18) 2px 5px
+  );
+}
+
+.game-smudge-line {
+  display: block;
+  height: 12px;
+}
+
+/* 直觉标记：缓慢呼吸的边框，不使用震动 API */
+.game-breath-frame {
+  position: relative;
+  border-radius: 14px;
+  padding: 2px;
+  animation: game-breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes game-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgba(210, 224, 255, 0.18), 0 0 10px 0 rgba(180, 205, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(210, 224, 255, 0.55), 0 0 22px 3px rgba(180, 205, 255, 0.32);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-breath-frame {
+    animation: none;
+    box-shadow: 0 0 0 2px rgba(210, 224, 255, 0.45);
+  }
+}

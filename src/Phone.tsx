@@ -64,6 +64,12 @@ import {
 } from "./schema";
 import { dispatch, choose, visible, advance } from "./engine";
 import { db } from "./persistence";
+import { defaultAccess } from "./game/store";
+import { useGame } from "./game/store";
+import { needsBreathingFrame, withClues } from "./game/clues";
+import { BreathingFrame } from "./game/ui";
+import { CycleBadge, FileManagerLayer, ViewSwitch } from "./game/ui";
+import "./game/game-overlay.css";
 export function AppIcon({
   id,
   name,
@@ -189,6 +195,8 @@ function PhoneRuntime({
     };
   }, [creator, ready]);
   const s = external ?? own;
+  // 剧情全局状态（十日轮回 / 双视角）。未包 GameProvider 时为 null，保持原行为。
+  const game = useGame();
   const runtimeRef = useRef(s);
   runtimeRef.current = s;
   const update = (next: Runtime) => {
@@ -397,7 +405,34 @@ function PhoneRuntime({
               {displayTime}
               <StatusGlyph kind="silent" />
             </button>
+            {game && <CycleBadge cycle={game.state.currentCycle} />}
             <div className="dynamic-island" />
+            {game && (
+              <ViewSwitch
+                state={game.state}
+                toggleView={() => {
+                  // 先退回桌面再切换视角
+                  setApp("");
+                  setFolder("");
+                  setPanel("");
+                  game.setAccess({
+                    offlineNotesOpen: false,
+                    albumDetailOpen: false,
+                  });
+                  game.toggleView();
+                }}
+                nextCycle={() => {
+                  setApp("");
+                  setFolder("");
+                  setPanel("");
+                  game.setAccess({
+                    offlineNotesOpen: false,
+                    albumDetailOpen: false,
+                  });
+                  game.nextCycle();
+                }}
+              />
+            )}
             <button
               className="signals"
               onClick={() => setPanel(panel === "control" ? "" : "control")}
@@ -517,6 +552,14 @@ function PhoneRuntime({
               />
             )}
           </AnimatePresence>
+          {game && !app && !locked && (
+            <FileManagerLayer
+              state={game.state}
+              access={game.access}
+              setAccess={game.setAccess}
+              onBack={() => setApp("")}
+            />
+          )}
           {folder && (
             <div className="folder-overlay" onClick={() => setFolder("")}>
               <h2>{folder}</h2>
@@ -889,11 +932,19 @@ function AppContent({
   const [unlocks, setUnlocks] = useState<string[]>([]);
   const [pwError, setPwError] = useState("");
   const [likes, setLikes] = useState<string[]>([]);
-  const shown = items
-    .filter((i) => creator || visible(i, state))
-    .filter((i) =>
-      (i.title + i.body + i.sender).toLowerCase().includes(q.toLowerCase()),
-    );
+  const game = useGame();
+  // 剧情线索投影：把 gameData.clues 中当前轮次/视角可见的条目并入内容列表。
+  const shown = withClues(
+    app.id,
+    items
+      .filter((i) => creator || visible(i, state))
+      .filter((i) =>
+        (i.title + i.body + i.sender).toLowerCase().includes(q.toLowerCase()),
+      ),
+    game?.state.currentView ?? "zuo_qihan",
+    game?.state.currentCycle ?? 1,
+    game?.access ?? { fileManager: false, offlineNotesOpen: false, albumDetailOpen: false },
+  );
   const filtered =
     tab === "收藏"
       ? shown.filter((i) => i.favorite)
@@ -906,6 +957,7 @@ function AppContent({
       return;
     }
     setDetail(i);
+    if (i.id === "album_residue") game?.setAccess({ albumDetailOpen: true });
     if (!i.password || unlocks.includes(i.id)) onRead(i.id);
   };
   const chats = [...new Set(shown.map((i) => i.title))];
@@ -920,8 +972,13 @@ function AppContent({
       : app.id === "whatsapp"
         ? WhatsAppSkin
         : (catalogSkins[app.id as keyof typeof catalogSkins] ?? null);
+  const breathe =
+    !!detail &&
+    needsBreathingFrame(app.id, detail.id, game?.access ?? defaultAccess);
   const detailView = detail ? (
-    <div className="phone-content detail-content">
+    <div
+      className={`phone-content detail-content${breathe ? " game-detail-breath" : ""}`}
+    >
       {detail.password && !creator && !unlocks.includes(detail.id) ? (
         <div className="locked-note">
           <LockKeyhole size={36} />
@@ -1016,7 +1073,13 @@ function AppContent({
             />
           ) : nativeDetailApps.has(app.id) &&
             (!detail.password || unlocks.includes(detail.id)) ? (
-            <NativeDetail app={app.id} item={detail} back={back} />
+            breathe ? (
+              <BreathingFrame>
+                <NativeDetail app={app.id} item={detail} back={back} />
+              </BreathingFrame>
+            ) : (
+              <NativeDetail app={app.id} item={detail} back={back} />
+            )
           ) : (
             <>
               <div className="app-nav">
