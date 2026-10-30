@@ -320,3 +320,64 @@
   padding: 0 18px 8px;
   text-align: center;
 }
+
+/* 已读未回：消息下方的灰色小字 */
+.wx-noreply {
+  font-size: 10px;
+  opacity: 0.55;
+  align-self: flex-start;
+  margin: -4px 0 4px 42px;
+}
+
+/* 左奇函私聊草稿区 */
+.wx-drafts {
+  padding: 0 14px 8px;
+}
+
+.wx-drafts-entry {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(220, 224, 232, 0.9);
+  cursor: pointer;
+}
+
+.wx-draft-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+}
+
+.wx-draft-item p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.82;
+}
+
+.wx-draft-item small {
+  font-size: 10px;
+  opacity: 0.5;
+}
+
+/* 发送失败：红色感叹号 */
+.wx-draft-fail {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #e64340;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  margin-top: 2px;
+}

@@ -102,8 +102,8 @@ export function mailsFor(view: CharacterId): Mail[] {
 }
 
 /**
- * 微信私聊：左奇函 ↔ 杨博文的初始聊天记录（三条）。
- * 两个视角都可见；第三条的"直觉残留"提示仅左奇函视角渲染，
+ * 微信私聊：左奇函 ↔ 杨博文的初始聊天记录（三条）+ 第一批跨轮回消息。
+ * 两个视角都可见；提示/hint 按 hintFor 指定的视角渲染，
  * 呼吸边框仅杨博文视角渲染（由 WeChatSkin 处理）。
  */
 export type PrivateMessage = {
@@ -116,6 +116,12 @@ export type PrivateMessage = {
   time: string;
   /** 是否为机主发出（气泡靠右）。 */
   outgoing: boolean;
+  /** 点开后底部灰色小字的提示文本。 */
+  hintText?: string;
+  /** 只有该视角能看到 hint / 未回复标记。 */
+  hintFor?: CharacterId;
+  /** 该视角下这条消息显示"未回复"灰色小字。 */
+  noReplyFor?: CharacterId;
 };
 
 export const privateMessages: PrivateMessage[] = [
@@ -148,7 +154,75 @@ export const privateMessages: PrivateMessage[] = [
     day: 2,
     time: "第2天 07:41",
     outgoing: false,
+    hintText: "他在第二轮也说过这句话。",
+    hintFor: "zuo_qihan",
+  },
+  // ---- 第九步：第一批跨轮回消息（感情线第一层） ----
+  // msg_006：第 2 天下午，两个视角正常显示；左奇函点开后见"他注意到了。"
+  {
+    id: "msg_006",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "杨博文",
+    content:
+      "你今天凌晨三点还在线。健康步数里你步数是 0，但微信显示在线。你没睡？",
+    day: 2,
+    time: "第2天 14:05",
+    outgoing: false,
+    hintText: "他注意到了。",
+    hintFor: "zuo_qihan",
+  },
+  // msg_007：第 2 天晚上，陈述语气；左奇函视角"已读未回"。
+  {
+    id: "msg_007",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "杨博文",
+    content: "左奇函，你是不是知道什么。",
+    day: 2,
+    time: "第2天 21:37",
+    outgoing: false,
+    noReplyFor: "zuo_qihan",
+  },
+  // msg_008：第 3 天早上，左奇函第一次主动开口；杨博文点开后见提示。
+  {
+    id: "msg_008",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "左奇函",
+    content: "你可以不信我，但今晚别一个人行动。",
+    day: 3,
+    time: "第3天 08:02",
+    outgoing: true,
+    hintText: "他第一次说‘别一个人’。",
+    hintFor: "yang_bowen",
   },
 ];
 
-export const CHAT3_HINT = "他在第二轮也说过这句话。";
+/**
+ * 左奇函私聊草稿区：未发送的草稿，只在左奇函视角可见。
+ * 不进入聊天流，不做逻辑联动，只让玩家自己发现对应关系。
+ */
+export type PrivateDraft = {
+  id: string;
+  content: string;
+  /** 草稿状态标注。 */
+  tag: string;
+  /** 是否显示发送失败的红色感叹号。 */
+  failed: boolean;
+};
+
+export const privateDrafts: PrivateDraft[] = [
+  {
+    id: "msg_005",
+    content: "梦而已。别多想。",
+    tag: "未发送",
+    failed: true,
+  },
+  {
+    id: "msg_draft_002",
+    content: "第 3 天凌晨天台，别去。",
+    tag: "第 2 轮写的，没发",
+    failed: true,
+  },
+];

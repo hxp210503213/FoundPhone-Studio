@@ -2,7 +2,7 @@ import { NativeComposer } from "./DeviceSystem";
 import { useSkinState } from "./skinState";
 import { useState } from "react";
 import { useGame } from "./game/store";
-import { CHAT3_HINT } from "./game/mails";
+import { privateDrafts } from "./game/mails";
 import {
   ChevronLeft,
   Plus,
@@ -133,6 +133,9 @@ function MessageList({
               {whatsapp && i.outgoing && <CheckCheck size={11} />}
             </small>
           </button>
+          {i.meta?.noReply && (
+            <small className="game-hint wx-noreply">未回复</small>
+          )}
           {!whatsapp && i.outgoing && <Avatar name={i.sender} src={i.avatar} />}
         </div>
       ))}
@@ -166,6 +169,7 @@ export function WeChatSkin(p: SkinProps) {
     [menu, setMenu] = useState(false),
     [searchOpen, setSearchOpen] = useState(false),
     [utility, setUtility] = useState("");
+  const [draftsOpen, setDraftsOpen] = useState(false);
   const [readThreads, setReadThreads] = useSkinState<string[]>(
     p,
     "readThreads",
@@ -297,9 +301,42 @@ export function WeChatSkin(p: SkinProps) {
             }
           />
           {p.thread === "杨博文" &&
-            game?.state.currentView === "zuo_qihan" &&
-            p.read?.includes("chat_003") && (
-              <small className="game-hint wx-chat-hint">{CHAT3_HINT}</small>
+            // 已点开的消息在会话底部渲染灰色提示（仅 hintFor 指定的视角）
+            p.items
+              .filter(
+                (i) =>
+                  i.title === p.thread &&
+                  i.meta?.hint &&
+                  p.read?.includes(i.id),
+              )
+              .map((i) => (
+                <small key={i.id} className="game-hint wx-chat-hint">
+                  {i.meta?.hint}
+                </small>
+              ))}
+          {p.thread === "杨博文" &&
+            game?.state.currentView === "zuo_qihan" && (
+              <div className="wx-drafts">
+                <button
+                  className="wx-drafts-entry"
+                  onClick={() => setDraftsOpen(!draftsOpen)}
+                  aria-expanded={draftsOpen}
+                >
+                  草稿
+                </button>
+                {draftsOpen &&
+                  privateDrafts.map((d) => (
+                    <div key={d.id} className="wx-draft-item">
+                      <b className="wx-draft-fail" aria-label="未发送">
+                        !
+                      </b>
+                      <div>
+                        <p>{d.content}</p>
+                        <small>{d.tag}</small>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             )}
           <Compose creator={p.creator} onAdd={p.onAdd} />
         </>

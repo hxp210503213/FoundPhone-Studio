@@ -153,12 +153,21 @@ export function withClues(
     // 宿舍群消息与左右私聊：两个视角都可见，仅追加一次
     for (const g of groupMessages)
       if (!items.some((i) => i.id === g.id)) extra.push(groupToItem(g));
-    for (const m of privateMessages)
-      if (!items.some((i) => i.id === m.id))
-        extra.push({
-          ...groupToItem(m),
-          outgoing: m.outgoing,
-        });
+    for (const m of privateMessages) {
+      if (items.some((i) => i.id === m.id)) continue;
+      const base = groupToItem(m);
+      const hint = m.hintFor === view ? (m.hintText ?? "") : "";
+      const noReply = m.noReplyFor === view ? "1" : "";
+      extra.push({
+        ...base,
+        outgoing: m.outgoing,
+        meta: {
+          ...base.meta,
+          ...(hint ? { hint } : {}),
+          ...(noReply ? { noReply } : {}),
+        },
+      });
+    }
   }
   return extra.length ? [...items, ...extra] : items;
 }
