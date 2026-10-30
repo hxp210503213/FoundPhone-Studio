@@ -68,6 +68,7 @@ import { defaultAccess } from "./game/store";
 import { useGame } from "./game/store";
 import { needsBreathingFrame, withClues } from "./game/clues";
 import { BreathingFrame } from "./game/ui";
+import { FjTraineeSkin } from "./game/FjTraineeSkin";
 import { CycleBadge, FileManagerLayer, ViewSwitch } from "./game/ui";
 import "./game/game-overlay.css";
 export function AppIcon({
@@ -971,7 +972,9 @@ function AppContent({
       ? WeChatSkin
       : app.id === "whatsapp"
         ? WhatsAppSkin
-        : (catalogSkins[app.id as keyof typeof catalogSkins] ?? null);
+        : app.id === "fj_trainee"
+          ? FjTraineeSkin
+          : (catalogSkins[app.id as keyof typeof catalogSkins] ?? null);
   const breathe =
     !!detail &&
     needsBreathingFrame(app.id, detail.id, game?.access ?? defaultAccess);
