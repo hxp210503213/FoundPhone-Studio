@@ -74,6 +74,20 @@ export const accessLogs: AccessLog[] = [
     result: "正常",
     visibleTo: [...ALL],
   },
+  {
+    id: "log_005",
+    app: "access_log",
+    day: 5,
+    time: "03:03",
+    location: "集训宿舍走廊",
+    card: "未登记卡",
+    result: "异常",
+    visibleTo: [...ALL],
+    hint: {
+      text: "凌晨三点，走廊。没人报备。谁在走？",
+      requiresSeen: [],
+    },
+  },
 ];
 
 export function accessLogsFor(view: CharacterId): AccessLog[] {

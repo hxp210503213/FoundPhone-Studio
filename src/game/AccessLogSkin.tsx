@@ -25,7 +25,9 @@ export function AccessLogSkin({
     seen: [],
   };
   const [detailId, setDetailId] = useState("");
-  const logs = accessLogsFor(view);
+  const logs = accessLogsFor(view).filter(
+    (l) => l.day <= (game?.state.currentDay ?? Number.MAX_SAFE_INTEGER),
+  );
   const detail = detailId ? findAccessLog(detailId) : undefined;
 
   const openDetail = (id: string) => {

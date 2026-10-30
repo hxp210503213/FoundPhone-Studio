@@ -132,6 +132,7 @@ describe("gameState", () => {
   it("初始值符合规范", () => {
     expect(initialGameState).toEqual({
       currentCycle: 1,
+      currentDay: 1,
       currentView: "zuo_qihan",
       trust: 0,
       alert: 0,

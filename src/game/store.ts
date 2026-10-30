@@ -25,6 +25,8 @@ export type GameStore = {
   toggleView: () => void;
   /** 临时按钮：进入下一轮，重置信任与碎片，保留残留线索。 */
   nextCycle: () => void;
+  /** 推进到下一集训日；第 10 天夜里由调用方触发重置流程。 */
+  nextDay: () => void;
   /** 仅改信任值，供后续剧情使用。 */
   setTrust: (value: number) => void;
   access: AccessSettings;
@@ -63,8 +65,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setState((s) => ({
       ...s,
       currentCycle: s.currentCycle + 1,
+      currentDay: 1,
       trust: 0,
       fragmentsBowen: 0,
+    }));
+  }, []);
+
+  const nextDay = useCallback(() => {
+    setState((s) => ({
+      ...s,
+      currentDay: Math.min(10, s.currentDay + 1),
     }));
   }, []);
 
@@ -77,8 +87,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ state, setView, toggleView, nextCycle, setTrust, access, setAccess }),
-    [state, setView, toggleView, nextCycle, setTrust, access, setAccess],
+    () => ({ state, setView, toggleView, nextCycle, nextDay, setTrust, access, setAccess }),
+    [state, setView, toggleView, nextCycle, nextDay, setTrust, access, setAccess],
   );
 
   return createElement(GameContext.Provider, { value }, children);

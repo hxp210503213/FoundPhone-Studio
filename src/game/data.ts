@@ -259,6 +259,8 @@ export const gameData = {
 export type GameState = {
   /** 当前轮回数，第一轮为 1。 */
   currentCycle: number;
+  /** 当前集训日（轮内推进，1—10；第 10 天夜里触发重置）。 */
+  currentDay: number;
   /** 当前视角角色，双男主切换使用。 */
   currentView: CharacterId;
   /** 左奇函 ↔ 杨博文 信任值。 */
@@ -271,6 +273,7 @@ export type GameState = {
 
 export const initialGameState: GameState = {
   currentCycle: 1,
+  currentDay: 1,
   currentView: "zuo_qihan",
   trust: 0,
   alert: 0,

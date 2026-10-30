@@ -170,6 +170,8 @@ function PhoneRuntime({
   const [pinError, setPinError] = useState("");
   const [folder, setFolder] = useState("");
   const [panel, setPanel] = useState("");
+  // 第 10 天夜里的轮回重置流程：全屏黑屏 + 清理通知
+  const [resetting, setResetting] = useState(false);
   const [own, setOwn] = useState(() => initialRuntime(work));
   const [ready, setReady] = useState(creator || !!external);
   const [loadError, setLoadError] = useState("");
@@ -397,6 +399,13 @@ function PhoneRuntime({
         >
           <div className="wallpaper-orb orb-one" />
           <div className="wallpaper-orb orb-two" />
+          {resetting && game && (
+            <div className="game-reset-overlay" role="alert">
+              <p className="game-reset-notice">
+                第 {game.state.currentCycle} 轮考核未完成。执行清理。
+              </p>
+            </div>
+          )}
           <div className="status-bar">
             <button
               onClick={() =>
@@ -408,7 +417,12 @@ function PhoneRuntime({
               {displayTime}
               <StatusGlyph kind="silent" />
             </button>
-            {game && <CycleBadge cycle={game.state.currentCycle} />}
+            {game && (
+              <CycleBadge
+                cycle={game.state.currentCycle}
+                day={game.state.currentDay}
+              />
+            )}
             <div className="dynamic-island" />
             {game && (
               <ViewSwitch
@@ -423,6 +437,22 @@ function PhoneRuntime({
                     albumDetailOpen: false,
                   });
                   game.toggleView();
+                }}
+                nextDay={game.nextDay}
+                onReset={() => {
+                  // 第 10 天夜里 23:59：清理通知 → 黑屏三秒 → 进入下一轮
+                  setApp("");
+                  setFolder("");
+                  setPanel("");
+                  setResetting(true);
+                  window.setTimeout(() => {
+                    game.setAccess({
+                      offlineNotesOpen: false,
+                      albumDetailOpen: false,
+                    });
+                    game.nextCycle();
+                    setResetting(false);
+                  }, 3000);
                 }}
                 nextCycle={() => {
                   setApp("");
@@ -956,6 +986,7 @@ function AppContent({
     game?.state.currentCycle ?? 1,
     game?.access ?? defaultAccess,
     state.read,
+    game?.state.currentDay ?? Number.MAX_SAFE_INTEGER,
   );
   const filtered =
     tab === "收藏"
@@ -1024,6 +1055,9 @@ function AppContent({
             {detail.time} · {detail.sender}
           </small>
           <h2>{detail.title}</h2>
+          {detail.meta?.erased && (
+            <div className="game-erased-block">文件已损坏。</div>
+          )}
           {(detail.media || ["media", "social"].includes(app.engine)) && (
             <Media item={detail} />
           )}
@@ -1092,6 +1126,7 @@ function AppContent({
               onUi={onUi}
             />
           ) : nativeDetailApps.has(app.id) &&
+            detail.id !== "album_group_photo" &&
             (!detail.password || unlocks.includes(detail.id)) ? (
             breathe ? (
               <BreathingFrame>

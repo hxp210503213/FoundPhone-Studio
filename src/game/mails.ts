@@ -17,6 +17,8 @@ export type Mail = {
   time: string;
   visibleTo: CharacterId[];
   hint?: NoticeHint;
+  /** 附件是集训名单：正文附上带跳号的名单（被抹除者名字消失）。 */
+  roster?: boolean;
 };
 
 const ALL: CharacterId[] = [
@@ -46,6 +48,7 @@ export const mails: Mail[] = [
       text: "名单上只有 7 个人。第 8 个是谁？",
       requiresSeen: ["group_roster_cjm"],
     },
+    roster: true,
   },
   {
     id: "mail_002",
@@ -62,6 +65,22 @@ export const mails: Mail[] = [
       requiresSeen: ["log_003"],
     },
   },
+  {
+    id: "mail_003",
+    app: "mail",
+    from: "公司行政",
+    subject: "关于集训名单的更正",
+    content: "因训练安排调整，集训名单更新如下，请以本版为准。",
+    attachment: "集训名单_第4代_修正版.pdf",
+    day: 7,
+    time: "第7天 09:00",
+    visibleTo: [...ALL],
+    hint: {
+      text: "上一版 7 个，这一版 6 个。又少了一个。",
+      requiresSeen: ["group_d7_cjm"],
+    },
+    roster: true,
+  },
 ];
 
 /** 微信宿舍群消息：辅助角色的发现通过群聊进入主线，两个视角都可见。 */
@@ -73,6 +92,10 @@ export type GroupMessage = {
   content: string;
   day: number;
   time: string;
+  /** 从第几轮起出现（默认第 1 轮）。 */
+  fromCycle?: number;
+  /** 是否为系统消息（无头像灰色居中样式由 skin 处理）。 */
+  system?: boolean;
 };
 
 export const groupMessages: GroupMessage[] = [
@@ -94,6 +117,75 @@ export const groupMessages: GroupMessage[] = [
     content: "集训名单我数了一下，好像只有 7 个人。",
     day: 3,
     time: "第3天 12:33",
+  },
+  // ---- 第一轮第 4—10 天（批次②） ----
+  {
+    id: "group_d4_wlj",
+    app: "wechat",
+    thread: "宿舍群",
+    sender: "王橹杰",
+    content: "我数了一下，我们本来是不是八个人？现在群里只有七个头像。",
+    day: 4,
+    time: "第4天 10:14",
+  },
+  {
+    id: "group_d4_cjm",
+    app: "wechat",
+    thread: "宿舍群",
+    sender: "陈浚铭",
+    content: "你数错了吧。",
+    day: 4,
+    time: "第4天 10:20",
+  },
+  {
+    id: "group_d5_zhr",
+    app: "wechat",
+    thread: "宿舍群",
+    sender: "张函瑞",
+    content:
+      "伴奏文件里那段声音，第 5 天夜里也有。像有人在数数。一、二、三……数到七就停了。",
+    day: 5,
+    time: "第5天 13:02",
+  },
+  {
+    id: "group_d5_csh",
+    app: "wechat",
+    thread: "宿舍群",
+    sender: "陈思罕",
+    content: "为什么是七？",
+    day: 5,
+    time: "第5天 13:05",
+  },
+  {
+    id: "group_d6_csh",
+    app: "wechat",
+    thread: "宿舍群",
+    sender: "陈思罕",
+    content:
+      "你们看步数，第 5 天夜里 03:00—03:10，所有人的步数都是 0，但门禁记录里有刷卡。谁在刷？",
+    day: 6,
+    time: "第6天 11:47",
+  },
+  {
+    id: "group_d7_cjm",
+    app: "wechat",
+    thread: "宿舍群",
+    sender: "陈浚铭",
+    content: "名单怎么又变了？我昨天看还是 7 个。",
+    day: 7,
+    time: "第7天 09:30",
+  },
+  {
+    // 轮回重置后出现的系统消息：群成员已更新
+    id: "group_member_updated",
+    app: "wechat",
+    thread: "宿舍群",
+    sender: "系统消息",
+    content: "群成员已更新。",
+    day: 1,
+    time: "第1天 00:00",
+    fromCycle: 2,
+    system: true,
   },
 ];
 
@@ -197,6 +289,71 @@ export const privateMessages: PrivateMessage[] = [
     hintText: "他第一次说‘别一个人’。",
     hintFor: "yang_bowen",
   },
+  // ---- 第 8 天：梦见床边的人（批次②） ----
+  {
+    id: "msg_d8",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "杨博文",
+    content:
+      "左奇函，我昨晚梦见一个人站在我床边，我看不清他的脸。他跟我说“别去天台”。声音像你，但不是你。",
+    day: 8,
+    time: "第8天 07:55",
+    outgoing: false,
+    hintText: "那是陈浚铭的声音。第一轮他消失前说的最后一句话。",
+    hintFor: "zuo_qihan",
+  },
+  // ---- 第 10 天夜里：终局前私聊五连（批次②） ----
+  {
+    id: "msg_d10_a",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "杨博文",
+    content: "我去叫陈浚铭。他今天不太对劲。",
+    day: 10,
+    time: "第10天 23:31",
+    outgoing: false,
+  },
+  {
+    id: "msg_d10_b",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "左奇函",
+    content: "别去天台。",
+    day: 10,
+    time: "第10天 23:32",
+    outgoing: true,
+  },
+  {
+    id: "msg_d10_c",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "杨博文",
+    content: "我没去天台。我在走廊。",
+    day: 10,
+    time: "第10天 23:44",
+    outgoing: false,
+  },
+  {
+    id: "msg_d10_d",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "左奇函",
+    content: "回来。",
+    day: 10,
+    time: "第10天 23:45",
+    outgoing: true,
+  },
+  {
+    id: "msg_d10_e",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "杨博文",
+    content: "我马上回。",
+    day: 10,
+    time: "第10天 23:51",
+    outgoing: false,
+  },
 ];
 
 /**
@@ -223,6 +380,12 @@ export const privateDrafts: PrivateDraft[] = [
     id: "msg_draft_002",
     content: "第 3 天凌晨天台，别去。",
     tag: "第 2 轮写的，没发",
+    failed: true,
+  },
+  {
+    id: "msg_draft_003",
+    content: "别去天台。这次别去。",
+    tag: "未发送",
     failed: true,
   },
 ];

@@ -12,7 +12,7 @@ import type { Item } from "../schema";
 import { findCharacter, gameData, type CharacterId, type Clue } from "./data";
 import type { AccessSettings } from "./access";
 import { mailsFor, groupMessages, privateMessages } from "./mails";
-import { erasedNames } from "./erase";
+import { erasedNames, rosterLines } from "./erase";
 import { hintVisible } from "./hints";
 
 /** 只有左奇函能碰到本机隐藏文件夹。 */
@@ -68,7 +68,7 @@ function mailToItem(
   return {
     id: m.id,
     title: m.subject,
-    body: `${m.content}\n\n附件：${m.attachment || "无"}`,
+    body: mailBody(m, cycle),
     richText: "",
     meta: {
       origin: "mail",
@@ -99,7 +99,11 @@ function groupToItem(g: (typeof groupMessages)[number]): Item {
     title: g.thread,
     body: g.content,
     richText: "",
-    meta: { origin: "group", sender: g.sender },
+    meta: {
+      origin: "group",
+      sender: g.sender,
+      ...(g.system ? { system: "1" } : {}),
+    },
     time: g.time,
     sender: g.sender,
     avatar: "",
@@ -122,9 +126,52 @@ export function clueById(id: string): Clue | undefined {
   return gameData.clues.find((c) => c.id === id);
 }
 
+/** 邮件正文：附件为名单时附上带跳号的名单（被抹除者名字消失）。 */
+function mailBody(m: { content: string; attachment: string; roster?: boolean }, cycle: number): string {
+  const base = `${m.content}\n\n附件：${m.attachment || "无"}`;
+  if (!m.roster) return base;
+  return `${base}\n\n${rosterLines(cycle).join("\n")}`;
+}
+
+/**
+ * 第 4 天起出现在相册里的集训合照：有一个人的位置是灰色方块。
+ * 点开灰色方块显示「文件已损坏。」（由 detailView 的 meta.erased 渲染）。
+ */
+const ALBUM_GROUP_PHOTO: Item = {
+  id: "album_group_photo",
+  title: "集训宿舍合照",
+  body: "集训宿舍合照，第 4 天下午拍的。照片里有一个人的位置是一块灰色方块。",
+  richText: "",
+  meta: {
+    origin: "clue",
+    erased: "1",
+    day: "4",
+  },
+  time: "第4天 16:20",
+  sender: "相册",
+  avatar: "",
+  kind: "note",
+  media: "",
+  hidden: false,
+  unlock: "",
+  password: "",
+  folder: "",
+  favorite: false,
+  outgoing: false,
+  read: false,
+  likes: 0,
+  comments: [],
+};
+
+/** 合照的左奇函视角提示（在详情页渲染）。 */
+const ALBUM_PHOTO_HINT: Record<string, string> = {
+  zuo_qihan: "照片里已经有灰块了。说明上一轮没的是别人。",
+};
+
 /**
  * 把当前可见的线索投影成 App 内容条目。
  * 不修改入参 items，返回新数组；线索已存在则不重复插入。
+ * day：当前集训日（默认不限，第 X 天的内容只在 day >= X 时出现）。
  */
 export function withClues(
   app: string,
@@ -133,6 +180,7 @@ export function withClues(
   cycle: number,
   access: AccessSettings,
   read: string[] = [],
+  day: number = Number.MAX_SAFE_INTEGER,
 ): Item[] {
   const extra: Item[] = [];
   if (app === "offline_notes") {
@@ -146,15 +194,25 @@ export function withClues(
       for (const c of gameData.clues.filter((x) => x.app === "album"))
         if (!items.some((i) => i.id === c.id)) extra.push(toItem(c));
     }
+    if (day >= 4 && !items.some((i) => i.id === ALBUM_GROUP_PHOTO.id)) {
+      const hint = ALBUM_PHOTO_HINT[view] ?? "";
+      extra.push({
+        ...ALBUM_GROUP_PHOTO,
+        meta: { ...ALBUM_GROUP_PHOTO.meta, ...(hint ? { hint } : {}) },
+      });
+    }
   } else if (app === "mail") {
     for (const m of mailsFor(view))
-      if (!items.some((i) => i.id === m.id))
+      if (m.day <= day && !items.some((i) => i.id === m.id))
         extra.push(mailToItem(m, view, cycle, access, read));
   } else if (app === "wechat") {
     // 宿舍群消息与左右私聊：两个视角都可见，仅追加一次。
     // 被抹除者发出的消息变成空白气泡（meta.erased），由 skin 渲染灰色圆角矩形。
+    // 第 X 天之后的消息只在 day >= X 时出现；fromCycle 限制消息所属轮次。
     const gone = new Set(erasedNames(cycle));
     for (const g of groupMessages) {
+      if (g.day > day) continue;
+      if (g.fromCycle && cycle < g.fromCycle) continue;
       if (items.some((i) => i.id === g.id)) continue;
       const item = groupToItem(g);
       extra.push(
@@ -164,6 +222,7 @@ export function withClues(
       );
     }
     for (const m of privateMessages) {
+      if (m.day > day) continue;
       if (items.some((i) => i.id === m.id)) continue;
       const base = groupToItem(m);
       const hint = m.hintFor === view ? (m.hintText ?? "") : "";

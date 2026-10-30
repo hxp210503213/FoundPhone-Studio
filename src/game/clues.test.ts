@@ -54,15 +54,17 @@ describe("跨轮回残留的可见性", () => {
     expect(canSeeAlbumResidue("zuo_qihan", 5)).toBe(false);
   });
 
-  it("第 1 轮杨博文相册里没有 album_residue", () => {
-    const items = withClues("album", [], "yang_bowen", 1, closed);
+  it("第 1 轮第 4 天前杨博文相册里没有内容", () => {
+    const items = withClues("album", [], "yang_bowen", 1, closed, [], 3);
     expect(items).toHaveLength(0);
   });
 
-  it("第 2 轮杨博文相册里出现 album_residue", () => {
-    const items = withClues("album", [], "yang_bowen", 2, closed);
-    expect(items.map((i) => i.id)).toEqual(["album_residue"]);
-    expect(items[0].meta.visualState).toBe("recovered");
+  it("第 4 天起相册出现合照，第 2 轮杨博文另有 album_residue", () => {
+    const c1 = withClues("album", [], "yang_bowen", 1, closed, [], 4);
+    expect(c1.map((i) => i.id)).toEqual(["album_group_photo"]);
+    const c2 = withClues("album", [], "yang_bowen", 2, closed, [], 4);
+    expect(c2.map((i) => i.id)).toEqual(["album_residue", "album_group_photo"]);
+    expect(c2[0].meta.visualState).toBe("recovered");
   });
 
   it("左奇函任何轮次都能在离线笔记里看到 memo_draft", () => {
@@ -90,9 +92,11 @@ describe("跨轮回残留的可见性", () => {
   });
 
   it("重复投影不会产生重复条目", () => {
-    const once = withClues("album", [], "yang_bowen", 2, closed);
-    const twice = withClues("album", once, "yang_bowen", 2, closed);
-    expect(twice).toHaveLength(1);
+    const once = withClues("album", [], "yang_bowen", 2, closed, [], 4);
+    const twice = withClues("album", once, "yang_bowen", 2, closed, [], 4);
+    expect(twice).toHaveLength(2);
+    expect(twice.filter((i) => i.id === "album_residue")).toHaveLength(1);
+    expect(twice.filter((i) => i.id === "album_group_photo")).toHaveLength(1);
   });
 
   it("呼吸边框只在点开残留详情后出现", () => {
@@ -129,5 +133,39 @@ describe("轮回与视角状态", () => {
     ]);
     expect(cluesFor("album", "yang_bowen", 1)).toHaveLength(0);
     expect(permanentClues("offline_notes")).toHaveLength(0);
+  });
+});
+
+describe("批次②：天数门控与名单跳号", () => {
+  it("第 3 天看不到第 4 天以后的群聊/私聊/邮件", () => {
+    const wechat = withClues("wechat", [], "zuo_qihan", 1, closed, [], 3);
+    const ids = wechat.map((i) => i.id);
+    expect(ids).toContain("group_roster_cjm");
+    expect(ids).not.toContain("group_d4_wlj");
+    expect(ids).not.toContain("msg_d10_a");
+    const mails = withClues("mail", [], "zuo_qihan", 1, closed, [], 3);
+    expect(mails.map((i) => i.id)).not.toContain("mail_003");
+  });
+
+  it("第 10 天能看到终局私聊五连", () => {
+    const wechat = withClues("wechat", [], "zuo_qihan", 1, closed, [], 10);
+    const ids = wechat.map((i) => i.id);
+    for (const id of ["msg_d10_a", "msg_d10_b", "msg_d10_c", "msg_d10_d", "msg_d10_e"])
+      expect(ids).toContain(id);
+  });
+
+  it("系统消息只在第 2 轮起出现", () => {
+    const c1 = withClues("wechat", [], "zuo_qihan", 1, closed, [], 1);
+    expect(c1.map((i) => i.id)).not.toContain("group_member_updated");
+    const c2 = withClues("wechat", [], "zuo_qihan", 2, closed, [], 1);
+    const sys = c2.find((i) => i.id === "group_member_updated");
+    expect(sys?.meta.system).toBe("1");
+  });
+
+  it("第 2 轮名单邮件正文带跳号（缺陈浚铭）", () => {
+    const mails = withClues("mail", [], "zuo_qihan", 2, closed, [], 7);
+    const roster = mails.find((i) => i.id === "mail_003");
+    expect(roster?.body).toContain("4. 张函瑞");
+    expect(roster?.body).not.toContain("7. 陈浚铭");
   });
 });

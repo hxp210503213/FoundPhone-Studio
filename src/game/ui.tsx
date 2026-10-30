@@ -24,11 +24,11 @@ import { markSeenId } from "./hints";
 import type { GameStore } from "./store";
 import "./game-overlay.css";
 
-/** 状态栏左侧：第 X 日 */
-export function CycleBadge({ cycle }: { cycle: number }) {
+/** 状态栏左侧：第 X 轮 · 第 Y 日 */
+export function CycleBadge({ cycle, day }: { cycle: number; day?: number }) {
   return (
-    <span className="game-cycle-badge" title="集训第几日">
-      第 {cycle} 日
+    <span className="game-cycle-badge" title="当前轮回与集训日">
+      第 {cycle} 轮{day ? ` · 第 ${day} 日` : ""}
     </span>
   );
 }
@@ -38,10 +38,16 @@ export function ViewSwitch({
   state,
   toggleView,
   nextCycle,
+  nextDay,
+  onReset,
 }: {
   state: GameState;
   toggleView: () => void;
   nextCycle: () => void;
+  /** 推进到下一集训日；第 10 天夜里由 onReset 接管。 */
+  nextDay: () => void;
+  /** 第 10 天夜里点「下一日」时触发的重置流程。 */
+  onReset?: () => void;
 }) {
   const name = findCharacter(state.currentView)?.name ?? state.currentView;
   return (
@@ -53,6 +59,17 @@ export function ViewSwitch({
         title="切换视角"
       >
         {name}
+      </button>
+      <button
+        className="game-switch-btn game-switch-day"
+        onClick={() => {
+          if (state.currentDay >= 10) onReset?.();
+          else nextDay();
+        }}
+        aria-label="推进到下一集训日"
+        title="下一集训日（第 10 天夜里触发重置）"
+      >
+        下一日
       </button>
       <button
         className="game-switch-btn game-switch-cycle"

@@ -111,10 +111,13 @@ function MessageList({
           key={i.id}
           className={`skin-message ${i.outgoing ? "outgoing" : ""}`}
         >
-          {!whatsapp && !i.outgoing && !i.meta?.erased && (
+          {!whatsapp && !i.outgoing && !i.meta?.erased && !i.meta?.system && (
             <Avatar name={i.sender} src={i.avatar} />
           )}
-          {i.meta?.erased ? (
+          {i.meta?.system ? (
+            // 系统消息：灰色居中小字，无气泡
+            <small className="wx-system-msg">{i.body}</small>
+          ) : i.meta?.erased ? (
             // 被抹除者：空白气泡，无头像无名字无文字，点击无反应
             <span className="game-erased-bubble" aria-label="空白气泡" />
           ) : (
