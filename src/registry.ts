@@ -86,6 +86,48 @@ const definitions: [
   ["find", "查找", "records", "#6ebf88", Locate, ["人物", "设备"]],
   ["calculator", "计算器", "system", "#bf9358", Calculator, ["计算器"]],
   ["settings", "设置", "system", "#818692", Settings, ["通用"]],
+  // 《十日集训》虚构 App 身份。仅登记 id 与名称，复用现有共享引擎呈现；
+  // 数据层见 src/game/data.ts。
+  [
+    "fj_trainee",
+    "时代峰峻",
+    "social",
+    "#5a6b7c",
+    Radio,
+    ["首页", "打卡", "考核排名", "通知"],
+  ],
+  [
+    "schedule",
+    "课程表",
+    "records",
+    "#6b7d8f",
+    Calendar,
+    ["今日", "本周"],
+  ],
+  [
+    "health_steps",
+    "健康步数",
+    "records",
+    "#7a8f86",
+    Heart,
+    ["步数", "睡眠"],
+  ],
+  [
+    "access_log",
+    "门禁记录",
+    "records",
+    "#8a7f74",
+    Pin,
+    ["宿舍", "训练楼"],
+  ],
+  [
+    "offline_notes",
+    "离线笔记",
+    "document",
+    "#8c8a6e",
+    StickyNote,
+    ["文件夹"],
+  ],
   [
     "wechat",
     "微信",

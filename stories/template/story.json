@@ -13,6 +13,19 @@
     "wallpaper": "apple-wwdc26"
   },
   "installedApps": [
+    "fj_trainee",
+    "schedule",
+    "health_steps",
+    "access_log",
+    {
+      "id": "offline_notes",
+      "name": "离线笔记",
+      "installed": true,
+      "visible": false,
+      "dock": false,
+      "folder": "",
+      "icon": ""
+    },
     "appstore",
     {
       "id": "wechat",

@@ -14,8 +14,14 @@ describe("independent app coverage and authored attributes", () => {
       "settings", "appstore",
     ];
     expect(Object.keys(catalogSkins)).toHaveLength(44);
+    // 故事专属 App（src/game/data.ts 登记）暂用共享引擎呈现，后续可按需补独立 skin
+    const sharedEngine = ["fj_trainee", "schedule", "health_steps", "access_log", "offline_notes"];
     for (const app of registry)
-      expect(previous.includes(app.id) || app.id in catalogSkins).toBe(true);
+      expect(
+        previous.includes(app.id) ||
+          app.id in catalogSkins ||
+          sharedEngine.includes(app.id),
+      ).toBe(true);
   });
   it("defaults new metadata safely when reading legacy item records", () => {
     const w = JSON.parse(JSON.stringify(createWork()));

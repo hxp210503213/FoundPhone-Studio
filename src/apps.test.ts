@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createWork, createEmptyWork } from "./demo";
 import { validateWork } from "./schema";
+import { registry } from "./registry";
 import {
   essentialApps,
   installApp,
@@ -26,7 +27,7 @@ describe("optional app lifecycle", () => {
         .map((a) => a.id)
         .sort(),
     ).toEqual([...essentialApps].sort());
-    expect(w.apps).toHaveLength(49);
+    expect(w.apps).toHaveLength(registry.length);
   });
   it("upgrades old format v1 app records without uninstalling existing apps", () => {
     const old = createWork();

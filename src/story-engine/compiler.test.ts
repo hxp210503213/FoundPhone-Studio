@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import example from "../../tests/fixtures/story-example/story.json";
 import { compileStory } from "./compiler";
+import { registry } from "../registry";
 import { testStory } from "./testStory";
 const copy = () => structuredClone(example);
 describe("AI story compiler", () => {
@@ -8,7 +9,7 @@ describe("AI story compiler", () => {
     const a = compileStory(copy()),
       b = compileStory(copy());
     expect(a.work).toEqual(b.work);
-    expect(a.work.apps).toHaveLength(49);
+    expect(a.work.apps).toHaveLength(registry.length);
     expect(a.work.apps.filter((a) => a.installed)).toHaveLength(13);
     expect(a.work.data.wechat[0].sender).toBe("小林");
   });
