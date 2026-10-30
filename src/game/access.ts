@@ -6,4 +6,6 @@ export type AccessSettings = {
   offlineNotesOpen: boolean;
   /** 是否已打开相册里那条被恢复的截图。 */
   albumDetailOpen: boolean;
+  /** 已打开过的通知/记录/邮件 id（用于异常提示的前置条件）。 */
+  seen: string[];
 };

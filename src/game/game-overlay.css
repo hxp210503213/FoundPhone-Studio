@@ -279,3 +279,12 @@
   font-size: 13px;
   cursor: pointer;
 }
+
+/* 异常提示：详情底部灰色小字 */
+.game-hint {
+  display: block;
+  margin: 6px 0 14px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(120, 126, 134, 0.95);
+}

@@ -37,6 +37,7 @@ export const defaultAccess: AccessSettings = {
   fileManager: false,
   offlineNotesOpen: false,
   albumDetailOpen: false,
+  seen: [],
 };
 
 const GameContext = createContext<GameStore | null>(null);

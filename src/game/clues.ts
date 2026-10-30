@@ -11,6 +11,8 @@
 import type { Item } from "../schema";
 import { findCharacter, gameData, type CharacterId, type Clue } from "./data";
 import type { AccessSettings } from "./access";
+import { mailsFor, groupMessages } from "./mails";
+import { hintVisible } from "./hints";
 
 /** 只有左奇函能碰到本机隐藏文件夹。 */
 export function canSeeOfflineNotes(view: CharacterId): boolean {
@@ -52,6 +54,68 @@ function toItem(clue: Clue): Item {
   };
 }
 
+/** 邮件 / 群消息 → Item 投影。hint 写入 meta，由详情视图渲染灰色小字。 */
+function mailToItem(
+  m: (typeof mailsFor extends (v: CharacterId) => infer R ? R extends (infer T)[] ? T : never : never),
+  view: CharacterId,
+  cycle: number,
+  access: AccessSettings,
+  read: string[],
+): Item {
+  const hint =
+    m.hint && hintVisible(m.hint, view, access, read) ? m.hint.text : "";
+  return {
+    id: m.id,
+    title: m.subject,
+    body: `${m.content}\n\n附件：${m.attachment || "无"}`,
+    richText: "",
+    meta: {
+      origin: "mail",
+      from: m.from,
+      time2: m.time,
+      ...(hint ? { hint } : {}),
+    },
+    time: m.time,
+    sender: m.from,
+    avatar: "",
+    kind: "file",
+    media: "",
+    hidden: false,
+    unlock: "",
+    password: "",
+    folder: "",
+    favorite: false,
+    outgoing: false,
+    read: false,
+    likes: 0,
+    comments: [],
+  };
+}
+
+function groupToItem(g: (typeof groupMessages)[number]): Item {
+  return {
+    id: g.id,
+    title: g.thread,
+    body: g.content,
+    richText: "",
+    meta: { origin: "group", sender: g.sender },
+    time: g.time,
+    sender: g.sender,
+    avatar: "",
+    kind: "text",
+    media: "",
+    hidden: false,
+    unlock: "",
+    password: "",
+    folder: "",
+    favorite: false,
+    outgoing: false,
+    read: false,
+    likes: 0,
+    comments: [],
+  };
+}
+
 /** 取某条线索（未定义时返回 undefined）。 */
 export function clueById(id: string): Clue | undefined {
   return gameData.clues.find((c) => c.id === id);
@@ -67,6 +131,7 @@ export function withClues(
   view: CharacterId,
   cycle: number,
   access: AccessSettings,
+  read: string[] = [],
 ): Item[] {
   const extra: Item[] = [];
   if (app === "offline_notes") {
@@ -80,6 +145,14 @@ export function withClues(
       for (const c of gameData.clues.filter((x) => x.app === "album"))
         if (!items.some((i) => i.id === c.id)) extra.push(toItem(c));
     }
+  } else if (app === "mail") {
+    for (const m of mailsFor(view))
+      if (!items.some((i) => i.id === m.id))
+        extra.push(mailToItem(m, view, cycle, access, read));
+  } else if (app === "wechat") {
+    // 宿舍群消息：两个视角都可见，仅追加一次
+    for (const g of groupMessages)
+      if (!items.some((i) => i.id === g.id)) extra.push(groupToItem(g));
   }
   return extra.length ? [...items, ...extra] : items;
 }

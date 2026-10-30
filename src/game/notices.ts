@@ -148,3 +148,66 @@ export function noticesFor(
 export function findNotice(id: string): Notice | undefined {
   return notices.find((n) => n.id === id);
 }
+
+/**
+ * 第七步：异常痕迹通知。
+ * hint 仅在满足条件时由 FjTraineeSkin 渲染（当前仅左奇函视角），
+ * requiresSeen 为需要先看过的条目 id（通知 / 门禁记录 / 群消息均可）。
+ */
+export type NoticeHint = {
+  text: string;
+  /** 需要先看过的条目 id。 */
+  requiresSeen: string[];
+  /** 限定视角；缺省为仅左奇函。 */
+  view?: CharacterId;
+};
+
+export type AnomalyNotice = Notice & { editedAt?: string; hint?: NoticeHint };
+
+export const anomalyNotices: AnomalyNotice[] = [
+  {
+    id: "notice_007",
+    app: "fj_trainee",
+    type: "staff",
+    title: "集训第 3 天课程调整",
+    content: "因场地原因，下午声乐课调至上午，舞蹈课调至下午。请互相转告。",
+    day: 3,
+    visibleTo: [...notices[0].visibleTo],
+    editedAt: "第3天 07:12",
+    hint: {
+      text: "第 1 天上午舞蹈、下午声乐；第 3 天上午声乐、下午舞蹈。时间被改过？",
+      requiresSeen: ["notice_001"],
+    },
+  },
+  {
+    id: "notice_008",
+    app: "fj_trainee",
+    type: "assessment",
+    title: "COVER 奖励说明（补充）",
+    content: "COVER 奖励将根据月末考核排名发放，具体曲目由公司统一安排。",
+    day: 3,
+    visibleTo: [...notices[0].visibleTo],
+    hint: {
+      text: "优先选择？统一安排？两条说法对不上。",
+      requiresSeen: ["notice_002", "group_cover_qyi"],
+    },
+  },
+  {
+    id: "notice_009",
+    app: "fj_trainee",
+    type: "staff",
+    title: "天台使用补充说明",
+    content: "天台门禁已检修，集训期间仍不开放。如发现门禁异常，请及时联系宿管。",
+    day: 3,
+    visibleTo: [...notices[0].visibleTo],
+    hint: {
+      text: "门禁已检修，那凌晨两点那条记录是什么？",
+      requiresSeen: ["notice_006", "log_003"],
+    },
+  },
+];
+
+/** 某视角下的异常通知（通知/排名两个标签都可能用到）。 */
+export function anomalyNoticesFor(view: CharacterId): AnomalyNotice[] {
+  return anomalyNotices.filter((n) => (n.visibleTo as string[]).includes(view));
+}

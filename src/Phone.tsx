@@ -69,6 +69,8 @@ import { useGame } from "./game/store";
 import { needsBreathingFrame, withClues } from "./game/clues";
 import { BreathingFrame } from "./game/ui";
 import { FjTraineeSkin } from "./game/FjTraineeSkin";
+import { AccessLogSkin } from "./game/AccessLogSkin";
+import { markSeenIds } from "./game/hints";
 import { CycleBadge, FileManagerLayer, ViewSwitch } from "./game/ui";
 import "./game/game-overlay.css";
 export function AppIcon({
@@ -927,6 +929,14 @@ function AppContent({
 }) {
   const [detail, setDetail] = useState<Item | null>(null);
   const [thread, setThread] = useState("");
+  // 进入宿舍群会话即视为读过群消息（辅助角色的发现由此进入左奇函视野）
+  useEffect(() => {
+    if (app.id === "wechat" && thread === "宿舍群" && game) {
+      game.setAccess({
+        seen: markSeenIds(game.access.seen, ["group_cover_qyi", "group_roster_cjm"]),
+      });
+    }
+  }, [app.id, thread]);
   const [tab, setTab] = useState(app.tabs[0]);
   const [q, setQ] = useState("");
   const [pw, setPw] = useState("");
@@ -944,7 +954,8 @@ function AppContent({
       ),
     game?.state.currentView ?? "zuo_qihan",
     game?.state.currentCycle ?? 1,
-    game?.access ?? { fileManager: false, offlineNotesOpen: false, albumDetailOpen: false },
+    game?.access ?? defaultAccess,
+    state.read,
   );
   const filtered =
     tab === "收藏"
@@ -974,7 +985,9 @@ function AppContent({
         ? WhatsAppSkin
         : app.id === "fj_trainee"
           ? FjTraineeSkin
-          : (catalogSkins[app.id as keyof typeof catalogSkins] ?? null);
+          : app.id === "access_log"
+            ? AccessLogSkin
+            : (catalogSkins[app.id as keyof typeof catalogSkins] ?? null);
   const breathe =
     !!detail &&
     needsBreathingFrame(app.id, detail.id, game?.access ?? defaultAccess);
@@ -1025,6 +1038,9 @@ function AppContent({
                 </div>
               ))}
           </dl>
+          {detail.meta?.hint && (
+            <small className="game-hint">{detail.meta.hint}</small>
+          )}
           {detail.folder && (
             <span className="folder-label">
               <Folder size={12} />
@@ -1060,6 +1076,7 @@ function AppContent({
               onBack={onBack}
               thread={thread}
               onThread={setThread}
+              read={state.read}
             />
           </Suspense>
         </div>

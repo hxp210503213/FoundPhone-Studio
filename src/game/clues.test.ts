@@ -14,6 +14,7 @@ const closed = {
   fileManager: false,
   offlineNotesOpen: false,
   albumDetailOpen: false,
+  seen: [],
 };
 
 describe("clues 数据", () => {
