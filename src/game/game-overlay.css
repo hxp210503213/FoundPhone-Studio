@@ -144,6 +144,28 @@
   opacity: 0.55;
 }
 
+/* 列表里的「未完成」小标签与日期标记 */
+.game-note-tag {
+  font-size: 10px;
+  font-style: normal;
+  padding: 1px 6px;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: rgba(255, 190, 130, 0.18);
+  color: rgba(255, 205, 160, 0.95);
+  vertical-align: 1px;
+}
+
+.game-note-day {
+  font-size: 10.5px !important;
+  opacity: 0.55;
+}
+
+/* 详情标题里的小标签（不在列表上下文中，单独给样式） */
+.game-note-detail h3 .game-note-tag {
+  font-size: 10px;
+}
+
 /* 涂抹效果：最后一行被反复涂掉，用重复斜线纹理模拟 */
 .game-smudge {
   display: inline-block;

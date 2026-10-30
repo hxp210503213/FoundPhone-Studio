@@ -13,6 +13,7 @@ import { useState } from "react";
 import { ChevronLeft, FileText, Folder, X } from "lucide-react";
 import { findCharacter, type GameState } from "./data";
 import { canSeeOfflineNotes, clueById, isSmudged } from "./clues";
+import { offlineNotes, type OfflineNote } from "./notes";
 import type { AccessSettings } from "./access";
 import type { GameStore } from "./store";
 import "./game-overlay.css";
@@ -74,9 +75,25 @@ export function FileManagerLayer({
   setAccess: GameStore["setAccess"];
   onBack: () => void;
 }) {
-  const [detail, setDetail] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const draft = clueById("memo_draft");
   if (!canSeeOfflineNotes(state.currentView)) return null;
+
+  const detail = detailId ?? null;
+  const isDraft = detail === "memo_draft";
+  const detailNote = offlineNotes.find((n) => n.id === detail);
+  /** 列表顺序：memo_draft（跨轮回残留）置顶，其余按 dayWritten 正序。 */
+  const notes = [...offlineNotes].sort((a, b) => a.dayWritten - b.dayWritten);
+
+  const renderBody = (content: string, smudged: boolean) =>
+    smudged ? (
+      <p className="game-note-body">
+        <span>{content.slice(0, Math.max(0, content.length - 3))}</span>
+        <span className="game-smudge" aria-label="被反复涂抹的字迹" />
+      </p>
+    ) : (
+      <p className="game-note-body">{content}</p>
+    );
 
   if (!access.offlineNotesOpen) {
     return (
@@ -94,7 +111,7 @@ export function FileManagerLayer({
       <div className="game-file-head">
         <button
           onClick={() => {
-            if (detail) setDetail(false);
+            if (detail) setDetailId(null);
             else if (access.offlineNotesOpen) setAccess({ offlineNotesOpen: false });
             else onBack();
           }}
@@ -106,7 +123,7 @@ export function FileManagerLayer({
         <strong>离线笔记</strong>
         <button
           onClick={() => {
-            setDetail(false);
+            setDetailId(null);
             setAccess({ offlineNotesOpen: false });
             onBack();
           }}
@@ -117,34 +134,53 @@ export function FileManagerLayer({
       </div>
       {detail ? (
         <div className="game-note-detail">
-          <h3>{draft?.title}</h3>
-          {draft && isSmudged(draft.id) ? (
-            <p className="game-note-body">
-              <span>{draft.content.slice(0, Math.max(0, draft.content.length - 3))}</span>
-              <span className="game-smudge" aria-label="被反复涂抹的字迹" />
-            </p>
-          ) : (
-            <p className="game-note-body">{draft?.content}</p>
-          )}
+          {isDraft ? (
+            <>
+              <h3>
+                没写完 <em className="game-note-tag">未完成</em>
+              </h3>
+              {draft && renderBody(draft.content, isSmudged("memo_draft"))}
+            </>
+          ) : detailNote ? (
+            <>
+              <h3>{detailNote.title}</h3>
+              {renderBody(detailNote.content, detailNote.visualState === "smudged")}
+            </>
+          ) : null}
           <small className="game-note-meta">本机保存 · 未同步云端</small>
         </div>
       ) : (
         <ul className="game-file-list">
-          <li>
-            <button onClick={() => setDetail(true)}>
-              <FileText size={20} />
-              <span>
-                <strong>{draft?.title ?? "未命名"}</strong>
-                {draft && isSmudged(draft.id) ? (
-                  <em className="game-smudge-line">
-                    <span className="game-smudge" />
-                  </em>
-                ) : (
-                  <em>{draft?.content}</em>
-                )}
-              </span>
-            </button>
-          </li>
+          {draft && (
+            <li>
+              <button onClick={() => setDetailId("memo_draft")}>
+                <FileText size={20} />
+                <span>
+                  <strong>
+                    没写完 <em className="game-note-tag">未完成</em>
+                  </strong>
+                  {isSmudged("memo_draft") ? (
+                    <em className="game-smudge-line">
+                      <span className="game-smudge" />
+                    </em>
+                  ) : (
+                    <em>{draft.content}</em>
+                  )}
+                </span>
+              </button>
+            </li>
+          )}
+          {notes.map((note: OfflineNote) => (
+            <li key={note.id}>
+              <button onClick={() => setDetailId(note.id)}>
+                <FileText size={20} />
+                <span>
+                  <strong>{note.title}</strong>
+                  <em className="game-note-day">第 {note.dayWritten} 天记录</em>
+                </span>
+              </button>
+            </li>
+          ))}
         </ul>
       )}
     </div>
