@@ -11,7 +11,7 @@
 import type { Item } from "../schema";
 import { findCharacter, gameData, type CharacterId, type Clue } from "./data";
 import type { AccessSettings } from "./access";
-import { mailsFor, groupMessages } from "./mails";
+import { mailsFor, groupMessages, privateMessages } from "./mails";
 import { hintVisible } from "./hints";
 
 /** 只有左奇函能碰到本机隐藏文件夹。 */
@@ -150,9 +150,15 @@ export function withClues(
       if (!items.some((i) => i.id === m.id))
         extra.push(mailToItem(m, view, cycle, access, read));
   } else if (app === "wechat") {
-    // 宿舍群消息：两个视角都可见，仅追加一次
+    // 宿舍群消息与左右私聊：两个视角都可见，仅追加一次
     for (const g of groupMessages)
       if (!items.some((i) => i.id === g.id)) extra.push(groupToItem(g));
+    for (const m of privateMessages)
+      if (!items.some((i) => i.id === m.id))
+        extra.push({
+          ...groupToItem(m),
+          outgoing: m.outgoing,
+        });
   }
   return extra.length ? [...items, ...extra] : items;
 }

@@ -100,3 +100,55 @@ export const groupMessages: GroupMessage[] = [
 export function mailsFor(view: CharacterId): Mail[] {
   return mails.filter((m) => (m.visibleTo as string[]).includes(view));
 }
+
+/**
+ * 微信私聊：左奇函 ↔ 杨博文的初始聊天记录（三条）。
+ * 两个视角都可见；第三条的"直觉残留"提示仅左奇函视角渲染，
+ * 呼吸边框仅杨博文视角渲染（由 WeChatSkin 处理）。
+ */
+export type PrivateMessage = {
+  id: string;
+  app: "wechat";
+  thread: string;
+  sender: "杨博文" | "左奇函";
+  content: string;
+  day: number;
+  time: string;
+  /** 是否为机主发出（气泡靠右）。 */
+  outgoing: boolean;
+};
+
+export const privateMessages: PrivateMessage[] = [
+  {
+    id: "chat_001",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "杨博文",
+    content: "你昨天是不是也没睡好？",
+    day: 1,
+    time: "第1天 23:12",
+    outgoing: false,
+  },
+  {
+    id: "chat_002",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "左奇函",
+    content: "还行。你早点睡。",
+    day: 1,
+    time: "第1天 23:20",
+    outgoing: true,
+  },
+  {
+    id: "chat_003",
+    app: "wechat",
+    thread: "杨博文",
+    sender: "杨博文",
+    content: "我昨晚梦见你让我别去天台，但我不记得你什么时候说过。",
+    day: 2,
+    time: "第2天 07:41",
+    outgoing: false,
+  },
+];
+
+export const CHAT3_HINT = "他在第二轮也说过这句话。";

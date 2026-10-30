@@ -1,6 +1,8 @@
 import { NativeComposer } from "./DeviceSystem";
 import { useSkinState } from "./skinState";
 import { useState } from "react";
+import { useGame } from "./game/store";
+import { CHAT3_HINT } from "./game/mails";
 import {
   ChevronLeft,
   Plus,
@@ -47,6 +49,8 @@ export type SkinProps = {
   onBack: () => void;
   thread: string;
   onThread: (s: string) => void;
+  /** 引擎已读 id 列表（玩家模式），供异常提示判定。 */
+  read?: string[];
 };
 function Avatar({
   name,
@@ -89,12 +93,15 @@ function MessageList({
   onItem,
   onRead,
   whatsapp = false,
+  highlightId,
 }: {
   items: Item[];
   creator: boolean;
   onItem: (i: Item) => void;
   onRead: (id: string) => void;
   whatsapp?: boolean;
+  /** 直觉标记：该消息气泡带呼吸边框（杨博文视角第三条私聊）。 */
+  highlightId?: string;
 }) {
   return (
     <div className={`skin-messages ${whatsapp ? "wa-wallpaper" : ""}`}>
@@ -108,7 +115,7 @@ function MessageList({
             <Avatar name={i.sender} src={i.avatar} />
           )}
           <button
-            className="skin-bubble"
+            className={`skin-bubble${i.id === highlightId ? " game-breath-bubble" : ""}`}
             onClick={() => (creator ? onItem(i) : onRead(i.id))}
           >
             {["image", "audio", "video"].includes(i.kind) ? (
@@ -152,6 +159,7 @@ function Compose({
   );
 }
 export function WeChatSkin(p: SkinProps) {
+  const game = useGame();
   const [tab, setTab] = useState("微信"),
     [query, setQuery] = useState(""),
     [moments, setMoments] = useState(false),
@@ -282,7 +290,17 @@ export function WeChatSkin(p: SkinProps) {
             creator={p.creator}
             onItem={p.onItem}
             onRead={p.onRead}
+            highlightId={
+              p.thread === "杨博文" && game?.state.currentView === "yang_bowen"
+                ? "chat_003"
+                : undefined
+            }
           />
+          {p.thread === "杨博文" &&
+            game?.state.currentView === "zuo_qihan" &&
+            p.read?.includes("chat_003") && (
+              <small className="game-hint wx-chat-hint">{CHAT3_HINT}</small>
+            )}
           <Compose creator={p.creator} onAdd={p.onAdd} />
         </>
       ) : moments ? (
