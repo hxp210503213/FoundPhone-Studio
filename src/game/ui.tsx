@@ -13,8 +13,14 @@ import { useState } from "react";
 import { ChevronLeft, FileText, Folder, X } from "lucide-react";
 import { findCharacter, type GameState } from "./data";
 import { canSeeOfflineNotes, clueById, isSmudged } from "./clues";
-import { offlineNotes, type OfflineNote } from "./notes";
+import {
+  NOTES_INTRO,
+  erasedNote,
+  offlineNotes,
+  type OfflineNote,
+} from "./notes";
 import type { AccessSettings } from "./access";
+import { markSeenId } from "./hints";
 import type { GameStore } from "./store";
 import "./game-overlay.css";
 
@@ -95,6 +101,18 @@ export function FileManagerLayer({
       <p className="game-note-body">{content}</p>
     );
 
+  /** note_000：置顶的「已抹除」名单，文字边缘轻微模糊。 */
+  const renderErasedBody = (content: string) => (
+    <p className="game-note-body game-note-blur">
+      {content.split("\n").map((line, i) => (
+        <span key={i}>
+          {line}
+          {i < content.split("\n").length - 1 && <br />}
+        </span>
+      ))}
+    </p>
+  );
+
   if (!access.offlineNotesOpen) {
     return (
       <div className="game-file-layer">
@@ -141,6 +159,14 @@ export function FileManagerLayer({
               </h3>
               {draft && renderBody(draft.content, isSmudged("memo_draft"))}
             </>
+          ) : detail === "note_000" ? (
+            <>
+              <h3>
+                {erasedNote.title}{" "}
+                <em className="game-note-tag game-note-tag-muted">已抹除</em>
+              </h3>
+              {renderErasedBody(erasedNote.content)}
+            </>
           ) : detailNote ? (
             <>
               <h3>{detailNote.title}</h3>
@@ -151,6 +177,33 @@ export function FileManagerLayer({
         </div>
       ) : (
         <ul className="game-file-list">
+          {!access.seen.includes("offline_notes_intro") && (
+            <li>
+              <button
+                className="game-narration"
+                onClick={() =>
+                  setAccess({
+                    seen: markSeenId(access.seen, "offline_notes_intro"),
+                  })
+                }
+              >
+                {NOTES_INTRO}
+                <em>（点击继续）</em>
+              </button>
+            </li>
+          )}
+          <li>
+            <button onClick={() => setDetailId("note_000")}>
+              <FileText size={20} />
+              <span>
+                <strong>
+                  {erasedNote.title}{" "}
+                  <em className="game-note-tag game-note-tag-muted">已抹除</em>
+                </strong>
+                <em className="game-note-blur">{erasedNote.content.split("\n")[0]}</em>
+              </span>
+            </button>
+          </li>
           {draft && (
             <li>
               <button onClick={() => setDetailId("memo_draft")}>

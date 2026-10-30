@@ -13,8 +13,26 @@ export type OfflineNote = {
   /** 写下这条笔记的集训日。 */
   dayWritten: number;
   visibleTo: ["zuo_qihan"];
-  visualState: "normal" | "smudged";
+  visualState: "normal" | "smudged" | "blurred";
 };
+
+/**
+ * 置顶的「已抹除」名单：只有左奇函记得被抹除者的名字。
+ * 文字边缘轻微模糊（CSS blur），像被橡皮擦过。
+ * 内容后续批次随轮回重置自动追加（批次②的重置管线）。
+ */
+export const erasedNote: OfflineNote = {
+  id: "note_000",
+  title: "已抹除",
+  content: "第一轮：陈浚铭。\n第二轮：张函瑞。\n第三轮：——",
+  dayWritten: 0,
+  visibleTo: ["zuo_qihan"],
+  visualState: "blurred",
+};
+
+/** 玩家第一次打开离线笔记时看到的旁白。 */
+export const NOTES_INTRO =
+  "你打开这个文件夹。置顶那条写着两个名字。你不记得自己是什么时候写的。但笔迹是你的。";
 
 export const offlineNotes: OfflineNote[] = [
   {

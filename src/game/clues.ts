@@ -12,6 +12,7 @@ import type { Item } from "../schema";
 import { findCharacter, gameData, type CharacterId, type Clue } from "./data";
 import type { AccessSettings } from "./access";
 import { mailsFor, groupMessages, privateMessages } from "./mails";
+import { erasedNames } from "./erase";
 import { hintVisible } from "./hints";
 
 /** 只有左奇函能碰到本机隐藏文件夹。 */
@@ -150,9 +151,18 @@ export function withClues(
       if (!items.some((i) => i.id === m.id))
         extra.push(mailToItem(m, view, cycle, access, read));
   } else if (app === "wechat") {
-    // 宿舍群消息与左右私聊：两个视角都可见，仅追加一次
-    for (const g of groupMessages)
-      if (!items.some((i) => i.id === g.id)) extra.push(groupToItem(g));
+    // 宿舍群消息与左右私聊：两个视角都可见，仅追加一次。
+    // 被抹除者发出的消息变成空白气泡（meta.erased），由 skin 渲染灰色圆角矩形。
+    const gone = new Set(erasedNames(cycle));
+    for (const g of groupMessages) {
+      if (items.some((i) => i.id === g.id)) continue;
+      const item = groupToItem(g);
+      extra.push(
+        gone.has(g.sender)
+          ? { ...item, sender: "", body: "", meta: { ...item.meta, erased: "1" } }
+          : item,
+      );
+    }
     for (const m of privateMessages) {
       if (items.some((i) => i.id === m.id)) continue;
       const base = groupToItem(m);

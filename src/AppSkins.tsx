@@ -111,13 +111,17 @@ function MessageList({
           key={i.id}
           className={`skin-message ${i.outgoing ? "outgoing" : ""}`}
         >
-          {!whatsapp && !i.outgoing && (
+          {!whatsapp && !i.outgoing && !i.meta?.erased && (
             <Avatar name={i.sender} src={i.avatar} />
           )}
-          <button
-            className={`skin-bubble${i.id === highlightId ? " game-breath-bubble" : ""}`}
-            onClick={() => (creator ? onItem(i) : onRead(i.id))}
-          >
+          {i.meta?.erased ? (
+            // 被抹除者：空白气泡，无头像无名字无文字，点击无反应
+            <span className="game-erased-bubble" aria-label="空白气泡" />
+          ) : (
+            <button
+              className={`skin-bubble${i.id === highlightId ? " game-breath-bubble" : ""}`}
+              onClick={() => (creator ? onItem(i) : onRead(i.id))}
+            >
             {["image", "audio", "video"].includes(i.kind) ? (
               <ItemMedia item={i} />
             ) : i.kind === "transfer" ? (
@@ -132,7 +136,8 @@ function MessageList({
               {i.time.slice(-5)}{" "}
               {whatsapp && i.outgoing && <CheckCheck size={11} />}
             </small>
-          </button>
+            </button>
+          )}
           {i.meta?.noReply && (
             <small className="game-hint wx-noreply">未回复</small>
           )}
